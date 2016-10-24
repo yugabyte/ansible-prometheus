@@ -1,0 +1,68 @@
+# Copyright (c) YugaByte, Inc.
+
+- name: set internal variables for convenience
+  set_fact:
+    prometheus_collectd_exporter_git_url: "https://github.com/prometheus/collectd_exporter.git"
+    prometheus_collectd_exporter_src_path: "{{ prometheus_goroot }}/src/github.com/prometheus/collectd_exporter"
+    prometheus_collectd_exporter_daemon_dir: "{{ prometheus_install_path }}"
+
+- name: Delete collectd_exporter build directory
+  file:
+    path: "{{ prometheus_collectd_exporter_src_path }}"
+    state: absent
+
+- name: Create collectd_exporter source directory
+  file:
+    path: "{{ prometheus_collectd_exporter_src_path }}"
+    state: directory
+
+- name: Clone the collectd_exporter project src
+  git:
+    repo: "{{ prometheus_collectd_exporter_git_url }}"
+    dest: "{{ prometheus_collectd_exporter_src_path }}"
+    force: yes
+
+- name: build collectd_exporter source code
+  command: make
+  args:
+    chdir: "{{ prometheus_collectd_exporter_src_path }}"
+    creates: collectd_exporter
+  environment:
+    GO15VENDOREXPERIMENT: 1
+    GOROOT: "{{ prometheus_goroot }}"
+    GOPATH: "{{ prometheus_gopath }}"
+    PATH: "{{ ansible_env.PATH }}:{{ prometheus_goroot }}/bin:{{ prometheus_gopath }}/bin"
+
+- name: Install collectd_exporter build
+  command: "cp {{ prometheus_collectd_exporter_src_path }}/collectd_exporter {{ prometheus_install_path }}"
+  args:
+    creates: "{{ prometheus_install_path }}/collectd_exporter"
+
+- name: set permissions, owner and group
+  file:
+    path: "{{ prometheus_install_path  }}/collectd_exporter"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "go-w"
+
+- name: mkdir for data
+  file:
+    path: "{{ prometheus_db_path }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "u=rwx,g=rx,o="
+
+- name: copy systemd config to collectd_exporter
+  template:
+    src: collectd_exporter.service.j2
+    dest: /etc/systemd/system/collectd_exporter.service
+
+- name: "Reload the systemd configuration"
+  command: systemctl daemon-reload
+
+- name: Start collectd_exporter service
+  service:
+    name: collectd_exporter
+    enabled: yes
+    state: started

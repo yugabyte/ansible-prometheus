@@ -59,3 +59,7 @@
 - name: install alertmanager
   include: install-alertmanager.yml
   when: '"alertmanager" in prometheus_components'
+
+- name: install collectd-exporter
+  include: install-collectd-exporter.yml
+  when: '"collectd_exporter" in prometheus_components'
