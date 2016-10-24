@@ -9,9 +9,9 @@ User={{ prometheus_user }}
 Group={{ prometheus_group }}
 
 {% if prometheus_collectd_exporter_opts is defined %}
-ExecStart={{ prometheus_install_path }}/collectd_exporter  {{ prometheus_collectd_exporter_opts }}
+ExecStart={{ prometheus_collectd_exporter_daemon_dir }}/collectd_exporter  {{ prometheus_collectd_exporter_opts }}
 {% else %}
-ExecStart={{ prometheus_install_path }}/collectd_exporter
+ExecStart={{ prometheus_collectd_exporter_daemon_dir }}/collectd_exporter
 {% endif %}
 
 [Install]
