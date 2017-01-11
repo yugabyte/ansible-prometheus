@@ -51,5 +51,7 @@ prometheus_rebuild:           false
 
 
 #---- the following vars are handled in tasks/set-role-variables.yml ------
-
-#prometheus_node_exporter_use_systemd: False  # use "systemd" to start/restart service?
+# For Yugabyte we would have these services be in systemd.
+prometheus_node_exporter_use_systemd: true
+prometheus_use_systemd: true
+prometheus_alertmanager_use_systemd: true

@@ -1,0 +1,25 @@
+[Unit]
+Description=prometheus - Prometheus monitoring system.
+Documentation=https://github.com/William-Yeh/ansible-prometheus
+After=network.target
+
+[Service]
+Type=simple
+
+User={{ prometheus_user }}
+Group={{ prometheus_group }}
+
+{% if prometheus_alertmanager_url is defined %}
+Environment='ALERTMANAGER_OPTS="-alertmanager.url={{ prometheus_alertmanager_url }}"'
+{% endif %}
+
+{% if prometheus_opts is defined %}
+Environment='PROMETHEUS_OPTS={{ prometheus_opts }}"
+{% endif %}
+
+ExecStart={{ prometheus_daemon_dir }}/prometheus \
+  -config.file={{ prometheus_config_path }}/prometheus.yml \
+  -storage.local.path={{ prometheus_db_path }} \
+  -web.console.templates={{ prometheus_daemon_dir }}/consoles \
+  -web.console.libraries={{ prometheus_daemon_dir }}/console_libraries \
+  ${ALERTMANAGER_OPTS} ${PROMETHEUS_OPTS}
