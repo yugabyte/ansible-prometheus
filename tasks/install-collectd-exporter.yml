@@ -1,17 +1,15 @@
 # Copyright (c) YugaByte, Inc.
 
 - block:
-    - name: set internal variables for convenience
+    - name: set internal variables for convenience, part 1
       set_fact:
-        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_version }}/collectd_exporter-{{ prometheus_collectd_exporter_version }}.linux-amd64.tar.gz"
-        prometheus_collectd_exporter_subdir: "{{ prometheus_install_path }}/collectd_exporter-{{ prometheus_collectd_exporter_version }}.linux-amd64"
-      when: ansible_userspace_bits == "64"
+        prometheus_collectd_exporter_signature: "collectd_exporter-{{ prometheus_collectd_exporter_version }}.{{ prometheus_platform_suffix }}"
 
-    - name: set internal variables for convenience
+    - name: set internal variables for convenience, part 2
       set_fact:
-        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_version }}/collectd_exporter-{{ prometheus_collectd_exporter_version }}.linux-386.tar.gz"
-        prometheus_collectd_exporter_subdir: "{{ prometheus_install_path }}/collectd_exporter-{{ prometheus_collectd_exporter_version }}.linux-386"
-      when: ansible_userspace_bits == "32"
+        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_signature }}.tar.gz"
+        prometheus_collectd_exporter_subdir: "{{ prometheus_install_path }}/{{ prometheus_collectd_exporter_signature }}"
+        prometheus_collectd_exporter_archive_file: "{{ prometheus_collectd_exporter_version }}/{{ prometheus_collectd_exporter_signature }}.tar.gz"
 
     - name: set daemon dir
       set_fact:
@@ -22,6 +20,15 @@
         src: "{{ prometheus_collectd_exporter_tarball_url }}"
         dest: "{{ prometheus_install_path }}"
         copy: no
+      when: prometheus_local_packages is not defined
+
+    - name: copy and uncompress local collectd_exporter tarball
+      unarchive:
+        src: "/{{ prometheus_local_packages }}/{{ prometheus_collectd_exporter_archive_file }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: yes
+      when: prometheus_local_packages is defined
+
 
   when: prometheus_collectd_exporter_version != "git"
 

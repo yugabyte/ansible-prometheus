@@ -7,18 +7,6 @@
 #
 
 - block:
-
-    - name: set internal variable platform-suffix for convenience
-      set_fact:
-        prometheus_platform_suffix: "linux-amd64"
-      when: ansible_userspace_bits == "64"
-
-    - name: set internal variable platform-suffix for convenience
-      set_fact:
-        prometheus_platform_suffix: "linux-386"
-      when: ansible_userspace_bits == "32"
-
-
     - name: set internal variables for convenience, part 1
       set_fact:
         prometheus_alertmanager_signature: "alertmanager-{{ prometheus_alertmanager_version }}.{{ prometheus_platform_suffix }}"
@@ -28,16 +16,17 @@
       set_fact:
         prometheus_alertmanager_untar_path: "{{ prometheus_install_path }}"
         prometheus_alertmanager_daemon_dir: "{{ prometheus_install_path }}/{{ prometheus_alertmanager_signature }}"
+        prometheus_alertmanager_archive_file: "{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_signature }}.tar.gz"
 
 
     - name: set download url for versions >= 0.3.0
       set_fact:
-        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_signature }}.tar.gz"
+        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_archive_file }}"
       when: prometheus_alertmanager_version | version_compare('0.3', '>=')
 
     - name: set download url for versions < 0.3.0
       set_fact:
-        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_signature }}.tar.gz"
+        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/{{ prometheus_alertmanager_archive_file }}"
       when: prometheus_alertmanager_version | version_compare('0.3', '<')
 
 
@@ -50,6 +39,17 @@
         owner: "{{ prometheus_user }}"
         group: "{{ prometheus_group }}"
         mode: "go-w"
+      when: prometheus_local_packages is not defined
+
+    - name: copy and uncompress local alertmanager tarball
+      unarchive:
+        src: "/{{ prometheus_local_packages }}/{{ prometheus_alertmanager_archive_file }}"
+        dest: "{{ prometheus_alertmanager_untar_path }}"
+        copy: yes
+        owner: "{{ prometheus_user }}"
+        group: "{{ prometheus_group }}"
+        mode: "go-w"
+      when: prometheus_local_packages is defined
 
   when: prometheus_alertmanager_version != "git"
 

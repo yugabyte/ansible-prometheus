@@ -7,31 +7,25 @@
 #
 
 - block:
-
-    - name: set internal variable platform-suffix for convenience
+    - name: set internal variables for convenience, part 1
       set_fact:
-        prometheus_platform_suffix: "linux-amd64"
-      when: ansible_userspace_bits == "64"
+        prometheus_signature: "prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}"
 
-    - name: set internal variable platform-suffix for convenience
+    - name: set internal variables for convenience, part 2
       set_fact:
-        prometheus_platform_suffix: "linux-386"
-      when: ansible_userspace_bits == "32"
-
-
-    - name: set internal variables for convenience
-      set_fact:
-        prometheus_subdir: "{{ prometheus_install_path }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}"
+        prometheus_subdir: "{{ prometheus_install_path }}/{{ prometheus_signature }}"
+        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}.tar.gz"
+        prometheus_archive_file: "{{ prometheus_version }}/{{ prometheus_signature }}.tar.gz"
 
 
     - name: set download url for versions >= 1.0.0
       set_fact:
-        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}.tar.gz"
+        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_archive_file }}.tar.gz"
       when: prometheus_version | version_compare('1.0', '>=')
 
     - name: set download url for versions < 1.0.0
       set_fact:
-        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}.tar.gz"
+        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/{{ prometheus_archive_file }}.tar.gz"
       when: prometheus_version | version_compare('1.0', '<')
 
     - name: set daemon dir for versions >= 0.16
@@ -49,6 +43,14 @@
         src: "{{ prometheus_tarball_url }}"
         dest: "{{ prometheus_install_path }}"
         copy: no
+      when: prometheus_local_packages is not defined
+
+    - name: copy and uncompress local prometheus tarball
+      unarchive:
+        src: "{{ prometheus_local_packages }}/{{ prometheus_archive_file }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: yes
+      when: prometheus_local_packages is defined
 
   when: prometheus_version != "git"
 
