@@ -39,17 +39,17 @@
         owner: "{{ prometheus_user }}"
         group: "{{ prometheus_group }}"
         mode: "go-w"
-      when: prometheus_local_packages is not defined
+      when: local_package_path is not defined
 
     - name: copy and uncompress local alertmanager tarball
       unarchive:
-        src: "/{{ prometheus_local_packages }}/{{ prometheus_alertmanager_archive_file }}"
+        src: "/{{ local_package_path }}/{{ prometheus_alertmanager_archive_file }}"
         dest: "{{ prometheus_alertmanager_untar_path }}"
         copy: yes
         owner: "{{ prometheus_user }}"
         group: "{{ prometheus_group }}"
         mode: "go-w"
-      when: prometheus_local_packages is defined
+      when: local_package_path is defined
 
   when: prometheus_alertmanager_version != "git"
 
