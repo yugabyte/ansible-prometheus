@@ -7,9 +7,12 @@
 
     - name: set internal variables for convenience, part 2
       set_fact:
-        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_signature }}.tar.gz"
         prometheus_collectd_exporter_subdir: "{{ prometheus_install_path }}/{{ prometheus_collectd_exporter_signature }}"
         prometheus_collectd_exporter_archive_file: "{{ prometheus_collectd_exporter_version }}/{{ prometheus_collectd_exporter_signature }}.tar.gz"
+
+    - name: set download url
+      set_fact:
+        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_archive_file }}"
 
     - name: set daemon dir
       set_fact:
