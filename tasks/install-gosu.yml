@@ -9,18 +9,30 @@
 
 - name: set internal variables for convenience
   set_fact:
-    gosu_exe_url: "https://github.com/tianon/gosu/releases/download/{{ gosu_version }}/gosu-amd64"
+    gosu_name: "gosu-amd64"
   when: ansible_userspace_bits == "64"
 
 - name: set internal variables for convenience
   set_fact:
-    gosu_exe_url: "https://github.com/tianon/gosu/releases/download/{{ gosu_version }}/gosu-i386"
-  when: ansible_userspace_bits == "32"
+    gosu_name: "gosu-i386"
+  when: ansible_userspace_bits == "32" and local_package_path is not defined
+
+- name: set internal variables for convenience
+  set_fact:
+    gosu_exe_url: "https://github.com/tianon/gosu/releases/download/{{ gosu_version }}/{{ gosu_name }}"
+    gosu_remote_dest: "/usr/local/bin/gosu"
 
 
 
 - name: download gosu executable
-  get_url: url="{{ gosu_exe_url }}"  dest="/usr/local/bin/gosu"
+  get_url: url="{{ gosu_exe_url }}"  dest="{{ gosu_remote_dest }}"
+  when: local_package_path is not defined
+
+- name: copy gosu executable from local
+  copy:
+    src: "/{{ local_package_path }}/{{ gosu_name }}"
+    dest: "{{ gosu_remote_dest }}"
+  when: local_package_path is defined
 
 - name: add executable permission
   file: path="/usr/local/bin/gosu" state=file mode="a+x"
