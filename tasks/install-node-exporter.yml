@@ -16,9 +16,15 @@
         prometheus_node_exporter_subdir: "{{ prometheus_install_path }}/{{ prometheus_node_exporter_signature }}"
         prometheus_node_exporter_archive_file: "{{ prometheus_node_exporter_version }}/{{ prometheus_node_exporter_signature }}.tar.gz"
 
-    - name: set download url
+    - name: set download url for >= 0.13
+      set_fact:
+        prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_archive_file }}"
+      when: prometheus_node_exporter_version >= 0.13
+
+    - name: set download url for < 0.13
       set_fact:
         prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/{{ prometheus_node_exporter_archive_file }}"
+      when: prometheus_node_exporter_version < 0.13
 
     - name: set daemon dir for >= 0.12
       set_fact:

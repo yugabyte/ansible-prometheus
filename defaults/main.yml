@@ -13,9 +13,9 @@
 prometheus_user:   prometheus
 prometheus_group:  prometheus
 
-prometheus_version:                 1.0.0
-prometheus_node_exporter_version:   0.12.0
-prometheus_alertmanager_version:    0.3.0
+prometheus_version:                 1.5.2
+prometheus_node_exporter_version:   0.13.0
+prometheus_alertmanager_version:    0.5.1
 prometheus_collectd_exporter_version: 0.3.1
 
 gosu_version: 1.9
