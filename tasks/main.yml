@@ -47,6 +47,7 @@
 
 - name: install helper utility "gosu"
   include: install-gosu.yml
+  when: '"gosu" in prometheus_components'
 
 - name: install prometheus
   include: install-prometheus.yml

@@ -16,17 +16,17 @@
       set_fact:
         prometheus_alertmanager_untar_path: "{{ prometheus_install_path }}"
         prometheus_alertmanager_daemon_dir: "{{ prometheus_install_path }}/{{ prometheus_alertmanager_signature }}"
-        prometheus_alertmanager_archive_file: "{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_signature }}.tar.gz"
+        prometheus_alertmanager_archive_file: "{{ prometheus_alertmanager_signature }}.tar.gz"
 
 
     - name: set download url for versions >= 0.3.0
       set_fact:
-        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_archive_file }}"
+        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_archive_file }}"
       when: prometheus_alertmanager_version | version_compare('0.3', '>=')
 
     - name: set download url for versions < 0.3.0
       set_fact:
-        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/{{ prometheus_alertmanager_archive_file }}"
+        prometheus_alertmanager_tarball_url: "https://github.com/prometheus/alertmanager/releases/download/{{ prometheus_alertmanager_version }}/{{ prometheus_alertmanager_archive_file }}"
       when: prometheus_alertmanager_version | version_compare('0.3', '<')
 
 
@@ -43,7 +43,7 @@
 
     - name: copy and uncompress local alertmanager tarball
       unarchive:
-        src: "/{{ local_package_path }}/{{ prometheus_alertmanager_archive_file }}"
+        src: "{{ local_package_path }}/{{ prometheus_alertmanager_archive_file }}"
         dest: "{{ prometheus_alertmanager_untar_path }}"
         copy: yes
         owner: "{{ prometheus_user }}"
