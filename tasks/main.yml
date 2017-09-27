@@ -4,7 +4,11 @@
 #
 # @see https://github.com/prometheus/prometheus
 # @see http://prometheus.io/docs/introduction/getting_started/
-#
+
+# If we are provisioning a cluster-server, local_package_path must be defined
+- assert:
+    that: local_package_path is defined
+  when: server_type == "cluster-server"
 
 - name: set role variables, if necessary
   include: set-role-variables.yml
