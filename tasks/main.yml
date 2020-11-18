@@ -31,8 +31,6 @@
     name: "{{ prometheus_user }}"
     group: "{{ prometheus_group }}"
     createhome: no
-    shell: /sbin/nologin
-    comment: "Prometheus User"
     state: present
 
 - name: mkdir for general cases
