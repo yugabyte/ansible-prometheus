@@ -14,7 +14,7 @@ prometheus_user:   prometheus
 prometheus_group:  prometheus
 
 prometheus_version:                 1.5.2
-prometheus_node_exporter_version:   0.13.0
+prometheus_node_exporter_version:   1.2.2
 prometheus_alertmanager_version:    0.5.1
 prometheus_collectd_exporter_version: 0.3.1
 
