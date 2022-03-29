@@ -66,7 +66,7 @@
       action: "{{ ansible_pkg_mgr }} name=gcc state=present"
 
     - name: install static libs for compiling source
-      yum: name=glibc-static state=present
+      yum: name=glibc-static state=present lock_timeout=600
       when: ansible_pkg_mgr == "yum"
 
     - name: delete the alertmanager build directory, if necessary

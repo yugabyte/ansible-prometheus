@@ -14,7 +14,7 @@
   include: set-role-variables.yml
 
 - name: install libselinux-python binary for Ansible to work
-  yum: name=libselinux-python state=present
+  yum: name=libselinux-python state=present lock_timeout=600
   when: ansible_pkg_mgr == "yum"
 
 - name: install dependencies for compiling Prometheus source code
