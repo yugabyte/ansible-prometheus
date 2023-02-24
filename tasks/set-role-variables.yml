@@ -34,6 +34,10 @@
 
   when: prometheus_node_exporter_use_systemd is not defined
 
+- name: configure prometheus_systemd_unit_dir for SLES
+  set_fact:
+    prometheus_systemd_unit_dir: "/usr/lib/systemd/system"
+  when: ansible_distribution == "SLES" and prometheus_node_exporter_use_systemd == True
 
 - name: use traditional SysV init, otherwise
   set_fact:
