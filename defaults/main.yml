@@ -55,3 +55,4 @@ prometheus_rebuild:           false
 prometheus_node_exporter_use_systemd: true
 prometheus_use_systemd: true
 prometheus_alertmanager_use_systemd: true
+prometheus_systemd_unit_dir: /lib/systemd/system
