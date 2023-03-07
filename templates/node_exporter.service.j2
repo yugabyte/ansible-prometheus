@@ -2,6 +2,8 @@
 Description=node_exporter - Exporter for machine metrics.
 Documentation=https://github.com/William-Yeh/ansible-prometheus
 After=network.target
+StartLimitInterval=100
+StartLimitBurst=10
 
 [Install]
 WantedBy=multi-user.target
@@ -22,3 +24,5 @@ ExecStart={{ prometheus_node_exporter_daemon_dir }}/node_exporter  {{ prometheus
 {% else %}
 ExecStart={{ prometheus_node_exporter_daemon_dir }}/node_exporter
 {% endif %}
+Restart=on-failure
+RestartSec=5
