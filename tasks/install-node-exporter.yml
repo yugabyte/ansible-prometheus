@@ -104,6 +104,9 @@
   template: src="../templates/node_exporter.service.j2"  dest={{ prometheus_systemd_unit_dir }}/node_exporter.service
   when: prometheus_node_exporter_use_systemd
 
+- name: reload systemd configuration
+  command: systemctl daemon-reload
+  when: prometheus_node_exporter_use_systemd
 
 - name: set INIT status and start
   service: name=node_exporter enabled=yes state=started
