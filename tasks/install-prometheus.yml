@@ -125,7 +125,7 @@
   when: not prometheus_use_systemd|bool
 
 - name: copy systemd config to server
-  template: src="../templates/prometheus.service.j2" dest="/lib/systemd/system/prometheus.service"
+  template: src="../templates/prometheus.service.j2" dest="{{ prometheus_systemd_unit_dir }}/prometheus.service"
   when: prometheus_use_systemd
 
 - name: "Reload the systemd configuration"
