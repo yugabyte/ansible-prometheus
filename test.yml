@@ -4,12 +4,12 @@
 
   pre_tasks:
     - name: fix for python interpreter for managed host
-      include: tasks/fix-python.yml
+      import_tasks: tasks/fix-python.yml
 
   tasks:
-    - include: 'tasks/main.yml'
+    - import_tasks: 'tasks/main.yml'
   handlers:
-    - include: 'handlers/main.yml'
+    - import_tasks: 'handlers/main.yml'
   vars_files:
     - 'defaults/main.yml'
 
