@@ -89,7 +89,7 @@
     mode: "u=rwx,g=rx,o="
 
 - name: set node_exporter variables
-  copy: src="../files/etc-default-node_exporter"  dest=/etc/default/node_exporter
+  copy: src="../files/etc-default-node_exporter"  dest=/home/yugabyte/default/node_exporter
   register: node_exporter_config
 
 - debug: var=node_exporter_config
