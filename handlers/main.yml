@@ -17,13 +17,22 @@
 
 
 - name: restart node_exporter
-  service: name=node_exporter state=restarted
+  systemd:
+    name: node-exporter
+    state: restarted
+    user: yes
 
 - name: reload node_exporter
-  service: name=node_exporter state=reloaded
+  systemd:
+    name: node-exporter
+    state: reloaded
+    user: yes
 
 - name: stop node_exporter
-  service: name=node_exporter state=stopped
+  systemd:
+    name: node-exporter
+    state: stopped
+    user: yes
 
 
 

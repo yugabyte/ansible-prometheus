@@ -102,10 +102,14 @@
   when: not prometheus_use_systemd|bool
 
 - name: copy systemd config to server
-  template: src="../templates/node_exporter.service.j2"  dest="/home/yugabyte/.config/user/systemd/node_exporter.service"
+  template: src="../templates/node_exporter.service.j2"  dest="/home/yugabyte/.config/systemd/user/node_exporter.service"
   when: prometheus_use_systemd|bool
 
 
 - name: set INIT status and start
-  service: name=node_exporter enabled=yes state=started
+  systemd:
+    user: yes
+    name: node_exporter
+    state: started
+    enabled: yes
   when: prometheus_use_service|bool
