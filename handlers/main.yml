@@ -17,22 +17,13 @@
 
 
 - name: restart node_exporter
-  systemd:
-    name: node-exporter
-    state: restarted
-    user: yes
+  raw: systemctl --user restart node_exporter
 
 - name: reload node_exporter
-  systemd:
-    name: node-exporter
-    state: reloaded
-    user: yes
+  raw: systemctl --user reload node_exporter
 
 - name: stop node_exporter
-  systemd:
-    name: node-exporter
-    state: stopped
-    user: yes
+  raw: systemctl --user stop node_exporter
 
 
 
