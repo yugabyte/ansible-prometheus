@@ -20,18 +20,19 @@
   when: prometheus_alertmanager_version == "git" or prometheus_node_exporter_version == "git" or prometheus_version == "git"
 
 
+- name: create Prometheus group
+  group: name={{ prometheus_group }}  state=present
+  when: not use_user_level_systemd
 
-# - name: create Prometheus group
-#   group: name={{ prometheus_group }}  state=present
-
-# - name: create Prometheus user
-#   user:
-#     name: "{{ prometheus_user }}"
-#     group: "{{ prometheus_group }}"
-#     createhome: no
-#     shell: /sbin/nologin
-#     comment: "Prometheus User"
-#     state: present
+- name: create Prometheus user
+  user:
+    name: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    createhome: no
+    shell: /sbin/nologin
+    comment: "Prometheus User"
+    state: present
+  when: not use_user_level_systemd
 
 - name: mkdir for general cases
   file:

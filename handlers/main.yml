@@ -17,13 +17,13 @@
 
 
 - name: restart node_exporter
-  raw: systemctl --user restart node_exporter
+  raw: "{{ 'systemctl restart node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user restart node_exporter' }}"
 
 - name: reload node_exporter
-  raw: systemctl --user reload node_exporter
+  raw: "{{ 'systemctl reload node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user reload node_exporter' }}"
 
 - name: stop node_exporter
-  raw: systemctl --user stop node_exporter
+  raw: "{{ 'systemctl stop node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user stop node_exporter' }}"
 
 
 

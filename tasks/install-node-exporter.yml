@@ -75,6 +75,9 @@
 
   when: prometheus_node_exporter_version == "git"
 
+- name: Determine the base systemd directory
+  set_fact:
+    systemd_dir: "{{ (yb_home_dir + '/.config/systemd/user') if use_user_level_systemd else '/lib/systemd/system' }}"
 
 
 - name: set permissions, owner and group
@@ -89,7 +92,7 @@
     mode: "u=rwx,g=rx,o="
 
 - name: set node_exporter variables
-  copy: src="../files/etc-default-node_exporter"  dest=/home/yugabyte/node_exporter
+  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_base_dir if use_user_level_systemd else '/etc/default' }}/node_exporter"
   register: node_exporter_config
 
 - debug: var=node_exporter_config
@@ -102,9 +105,12 @@
   when: not prometheus_use_systemd|bool
 
 - name: copy systemd config to server
-  template: src="../templates/node_exporter.service.j2"  dest="/home/yugabyte/.config/systemd/user/node_exporter.service"
+  template: src="../templates/node_exporter.service.j2"  dest="{{ systemd_dir }}/node_exporter.service"
   when: prometheus_use_systemd|bool
 
+- name: set INIT status and start
+  service: name=node_exporter enabled=yes state=started
+  when: not use_user_level_systemd and prometheus_use_service|bool
 
 - name: set INIT status and start
   systemd:
@@ -112,4 +118,4 @@
     name: node_exporter
     state: started
     enabled: yes
-  when: prometheus_use_service|bool
+  when: prometheus_use_service|bool and use_user_level_systemd
