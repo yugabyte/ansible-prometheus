@@ -94,7 +94,7 @@
     mode: "u=rwx,g=rx,o="
 
 - name: set node_exporter variables
-  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_base_dir if use_user_level_systemd | default(false) else '/etc/default' }}/node_exporter"
+  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_base_dir if use_user_level_systemd else '/etc/default' }}/node_exporter"
 
 - name: copy INIT script to server
   template: src="../templates/node_exporter.sysvinit.{{ ansible_os_family|lower }}.sh.j2"  dest="/etc/init.d/node_exporter"  mode="a+x"
@@ -105,12 +105,12 @@
   when: prometheus_node_exporter_use_systemd
 
 - name: reload systemd configuration
-  raw: "{{ 'systemctl --user daemon-reload' if use_user_level_systemd | default(false) else 'systemctl daemon-reload' }}"
+  raw: "{{ 'systemctl --user daemon-reload' if use_user_level_systemd else 'systemctl daemon-reload' }}"
   when: prometheus_node_exporter_use_systemd
 
 - name: set INIT status and start
   service: name=node_exporter enabled=yes state=started
-  when: not (use_user_level_systemd | default(false)) and prometheus_node_exporter_use_systemd
+  when: not use_user_level_systemd and prometheus_node_exporter_use_systemd
 
 - name: set INIT status and start
   systemd:
@@ -118,4 +118,4 @@
     name: node_exporter
     state: started
     enabled: yes
-  when: (use_user_level_systemd | default(false)) and prometheus_node_exporter_use_systemd
+  when: use_user_level_systemd and prometheus_node_exporter_use_systemd
