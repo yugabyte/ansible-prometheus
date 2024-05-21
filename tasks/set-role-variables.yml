@@ -42,7 +42,7 @@
 - name: configure prometheus_systemd_unit_dir for user level systemd
   set_fact:
     prometheus_systemd_unit_dir: "{{ yb_home_dir }}/.config/systemd/user"
-  when: "{{ use_user_level_systemd }}"
+  when: use_user_level_systemd is defined and use_user_level_systemd|bool
 
 - name: use traditional SysV init, otherwise
   set_fact:
