@@ -20,18 +20,18 @@ prometheus_collectd_exporter_version: 0.3.1
 
 gosu_version: 1.9
 prometheus_go_version:   1.6.2
-use_user_level_systemd: "{{ use_user_level_systemd | default(false) }}"
-prometheus_base_dir: "{{ yb_home_dir if use_user_level_systemd else '' }}/node_exporter"
+use_user_scoped_systemd: "{{ use_user_level_systemd | default(false) }}"
+prometheus_base_dir: "{{ yb_home_dir if use_user_scoped_systemd else '' }}/node_exporter"
 
 
-prometheus_install_path:         "{{ prometheus_base_dir if use_user_level_systemd else '' }}/opt/prometheus"
-prometheus_config_path:          "{{ prometheus_base_dir if use_user_level_systemd else '' }}/etc/prometheus"
+prometheus_install_path:         "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/opt/prometheus"
+prometheus_config_path:          "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/etc/prometheus"
 prometheus_rule_path:            "{{ prometheus_config_path }}/rules"
 prometheus_file_sd_config_path:  "{{ prometheus_config_path }}/tgroups"
-prometheus_db_path:              "{{ prometheus_base_dir if use_user_level_systemd else '' }}/var/lib/prometheus/data"
-prometheus_log_path:             "{{ prometheus_base_dir if use_user_level_systemd else '' }}/var/log/prometheus"
-prometheus_pid_path:             "{{ prometheus_base_dir if use_user_level_systemd else '' }}/var/run/prometheus"
-prometheus_alertmanager_db_path: "{{ prometheus_base_dir if use_user_level_systemd else '' }}/var/lib/alertmanager"
+prometheus_db_path:              "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/var/lib/prometheus/data"
+prometheus_log_path:             "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/var/log/prometheus"
+prometheus_pid_path:             "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/var/run/prometheus"
+prometheus_alertmanager_db_path: "{{ prometheus_base_dir if use_user_scoped_systemd else '' }}/var/lib/alertmanager"
 
 
 prometheus_download_path: /tmp
