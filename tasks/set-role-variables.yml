@@ -39,6 +39,11 @@
     prometheus_systemd_unit_dir: "/usr/lib/systemd/system"
   when: ansible_os_family == "Suse" and prometheus_node_exporter_use_systemd == True
 
+- name: configure prometheus_systemd_unit_dir for user level systemd
+  set_fact:
+    prometheus_systemd_unit_dir: "{{ yb_home_dir }}/.config/systemd/user"
+  when: use_user_scoped_systemd is defined and use_user_scoped_systemd|bool
+
 - name: use traditional SysV init, otherwise
   set_fact:
     prometheus_node_exporter_use_systemd: false

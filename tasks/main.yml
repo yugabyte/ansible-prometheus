@@ -25,6 +25,7 @@
 
 - name: create Prometheus group
   group: name={{ prometheus_group }}  state=present
+  when: not use_user_scoped_systemd
 
 - name: create Prometheus user
   user:
@@ -32,6 +33,7 @@
     group: "{{ prometheus_group }}"
     createhome: no
     state: present
+  when: not use_user_scoped_systemd
 
 - name: mkdir for general cases
   file:
