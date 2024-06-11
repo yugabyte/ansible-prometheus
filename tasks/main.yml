@@ -11,10 +11,10 @@
   when: server_type is defined and server_type == "cluster-server"
 
 - set_fact:
-    use_user_scoped_systemd:         "{{ use_user_level_systemd | default(false) }}"
+    use_user_scoped_systemd: "{{ use_user_level_systemd | default(false) }}"
+    yb_home_dir:             "{{ yb_home_dir | default('') }}"
 
 - set_fact:
-    yb_home_dir:                     "{{ yb_home_dir | default('') }}"
     prometheus_user_base_dir:        "{{ yb_home_dir }}/node_exporter"
   when: use_user_scoped_systemd | default(false)
 
@@ -49,7 +49,6 @@
 - name: install dependencies for compiling Prometheus source code
   include: install-compile-tools.yml
   when: prometheus_alertmanager_version == "git" or prometheus_node_exporter_version == "git" or prometheus_version == "git"
-
 
 
 - name: create Prometheus group
