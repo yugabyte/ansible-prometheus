@@ -22,7 +22,7 @@
     prometheus_log_path:             "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/log/prometheus"
     prometheus_pid_path:             "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/run/prometheus"
     prometheus_alertmanager_db_path: "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/lib/alertmanager"
-  when: use_user_level_systemd
+  when: use_user_level_systemd | default(false)
 
 
 - name: Debug variable values before creating directories
@@ -50,7 +50,7 @@
 
 - name: create Prometheus group
   group: name={{ prometheus_group }}  state=present
-  when: not use_user_level_systemd
+  when: not (use_user_level_systemd | default(false))
 
 - name: create Prometheus user
   user:
@@ -58,7 +58,7 @@
     group: "{{ prometheus_group }}"
     createhome: no
     state: present
-  when: not use_user_level_systemd
+  when: not (use_user_level_systemd | default(false))
 
 - name: mkdir for general cases
   file:
