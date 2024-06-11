@@ -10,20 +10,24 @@
     that: local_package_path is defined
   when: server_type is defined and server_type == "cluster-server"
 
-- name: Configure variables for user level systemd
-  set_fact:
+- set_fact:
+    use_user_scoped_systemd:         "{{ use_user_level_systemd | default(false) }}"
+
+- set_fact:
     yb_home_dir:                     "{{ yb_home_dir | default('') }}"
-    prometheus_user_base_dir:        "{{ yb_home_dir | default('') }}/node_exporter"
-    prometheus_install_path:         "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/opt/prometheus"
-    prometheus_config_path:          "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/etc/prometheus"
+    prometheus_user_base_dir:        "{{ yb_home_dir }}/node_exporter"
+  when: use_user_scoped_systemd | default(false)
+
+- set_fact:
+    prometheus_install_path:         "{{ prometheus_user_base_dir }}/opt/prometheus"
+    prometheus_config_path:          "{{ prometheus_user_base_dir }}/etc/prometheus"
     prometheus_rule_path:            "{{ prometheus_config_path }}/rules"
     prometheus_file_sd_config_path:  "{{ prometheus_config_path }}/tgroups"
-    prometheus_db_path:              "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/lib/prometheus/data"
-    prometheus_log_path:             "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/log/prometheus"
-    prometheus_pid_path:             "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/run/prometheus"
-    prometheus_alertmanager_db_path: "{{ prometheus_user_base_dir if use_user_level_systemd else '' }}/var/lib/alertmanager"
-  when: use_user_level_systemd | default(false)
-
+    prometheus_db_path:              "{{ prometheus_user_base_dir }}/var/lib/prometheus/data"
+    prometheus_log_path:             "{{ prometheus_user_base_dir }}/var/log/prometheus"
+    prometheus_pid_path:             "{{ prometheus_user_base_dir }}/var/run/prometheus"
+    prometheus_alertmanager_db_path: "{{ prometheus_user_base_dir }}/var/lib/alertmanager"
+  when: use_user_scoped_systemd | default(false)
 
 - name: Debug variable values before creating directories
   debug:
@@ -50,7 +54,7 @@
 
 - name: create Prometheus group
   group: name={{ prometheus_group }}  state=present
-  when: not (use_user_level_systemd | default(false))
+  when: not use_user_scoped_systemd
 
 - name: create Prometheus user
   user:
@@ -58,7 +62,7 @@
     group: "{{ prometheus_group }}"
     createhome: no
     state: present
-  when: not (use_user_level_systemd | default(false))
+  when: not use_user_scoped_systemd
 
 - name: mkdir for general cases
   file:

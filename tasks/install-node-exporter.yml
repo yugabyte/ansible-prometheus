@@ -94,7 +94,7 @@
     mode: "u=rwx,g=rx,o="
 
 - name: set node_exporter variables
-  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_base_dir if use_user_scoped_systemd else '/etc/default' }}/node_exporter"
+  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_user_base_dir if use_user_scoped_systemd else '/etc/default' }}/node_exporter"
 
 - name: copy INIT script to server
   template: src="../templates/node_exporter.sysvinit.{{ ansible_os_family|lower }}.sh.j2"  dest="/etc/init.d/node_exporter"  mode="a+x"
