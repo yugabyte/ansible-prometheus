@@ -40,20 +40,6 @@
 
   when: prometheus_node_exporter_version != "git"
 
-- name: Debug all relevant variables
-  debug:
-    msg:
-      - "prometheus_home_dir: {{ prometheus_home_dir }}"
-      - "use_user_scoped_systemd: {{ use_user_scoped_systemd }}"
-      - "prometheus_install_path: {{ prometheus_install_path }}"
-      - "prometheus_config_path: {{ prometheus_config_path }}"
-      - "prometheus_rule_path: {{ prometheus_rule_path }}"
-      - "prometheus_file_sd_config_path: {{ prometheus_file_sd_config_path }}"
-      - "prometheus_db_path: {{ prometheus_db_path }}"
-      - "prometheus_log_path: {{ prometheus_log_path }}"
-      - "prometheus_pid_path: {{ prometheus_pid_path }}"
-      - "prometheus_alertmanager_db_path: {{ prometheus_alertmanager_db_path }}"
-
 - block:
 
     - name: set internal variables for convenience
