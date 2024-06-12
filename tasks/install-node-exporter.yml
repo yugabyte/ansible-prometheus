@@ -6,11 +6,6 @@
 # @see http://prometheus.io/docs/introduction/getting_started/
 #
 
-- name: Print the yb_home path
-  debug:
-    msg: "Prometheus will be installed in {{ yb_home_dir }}"
-
-
 - block:
     - name: set internal variables for convenience, part 1
       set_fact:
