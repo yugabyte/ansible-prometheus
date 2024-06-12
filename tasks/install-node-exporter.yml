@@ -100,6 +100,14 @@
   template: src="../templates/node_exporter.sysvinit.{{ ansible_os_family|lower }}.sh.j2"  dest="/etc/init.d/node_exporter"  mode="a+x"
   when: not prometheus_node_exporter_use_systemd|bool
 
+- name: Ensure yb_home_dir is defined
+  set_fact:
+    yb_home_dir: "{{ yb_home_dir | default('/home/yugabyte') }}"
+
+- name: Debug yb_home_dir
+  debug:
+    msg: "Inside role: yb_home_dir is {{ yb_home_dir }}"
+
 - name: copy systemd config to server
   template: src="../templates/node_exporter.service.j2"  dest="{{ prometheus_systemd_unit_dir }}/node_exporter.service"
   when: prometheus_node_exporter_use_systemd
