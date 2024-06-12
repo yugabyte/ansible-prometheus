@@ -12,7 +12,6 @@
 
 - set_fact:
     use_user_scoped_systemd: "{{ use_user_level_systemd | default(false) }}"
-    yb_home_dir:             "{{ yb_home_dir | default('') }}"
 
 - set_fact:
     prometheus_user_base_dir:        "{{ yb_home_dir }}/node_exporter"
