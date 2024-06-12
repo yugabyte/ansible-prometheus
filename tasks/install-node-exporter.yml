@@ -43,7 +43,7 @@
 - name: Debug all relevant variables
   debug:
     msg:
-      - "yb_home_dir: {{ yb_home_dir }}"
+      - "prometheus_home_dir: {{ prometheus_home_dir }}"
       - "use_user_scoped_systemd: {{ use_user_scoped_systemd }}"
       - "prometheus_install_path: {{ prometheus_install_path }}"
       - "prometheus_config_path: {{ prometheus_config_path }}"
