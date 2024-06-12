@@ -20,7 +20,7 @@ prometheus_collectd_exporter_version: 0.3.1
 
 gosu_version: 1.9
 prometheus_go_version:   1.6.2
-yb_home_dir: ''
+yb_home_dir: /home/yugabyte
 use_user_scoped_systemd: "{{ use_user_level_systemd | default(false) }}"
 
 prometheus_install_path:         /opt/prometheus
