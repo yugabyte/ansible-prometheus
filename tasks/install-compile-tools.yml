@@ -15,7 +15,7 @@
     - gcc
 
 - name: install make
-  yum: name=make state=present update_cache=yes
+  yum: name=make state=present update_cache=yes lock_timeout=600
   when: ansible_pkg_mgr == "yum"
 
 - name: install make

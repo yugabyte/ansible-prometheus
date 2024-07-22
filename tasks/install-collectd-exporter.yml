@@ -1,0 +1,108 @@
+# Copyright (c) YugaByte, Inc.
+
+- block:
+    - name: set internal variables for convenience, part 1
+      set_fact:
+        prometheus_collectd_exporter_signature: "collectd_exporter-{{ prometheus_collectd_exporter_version }}.{{ prometheus_platform_suffix }}"
+
+    - name: set internal variables for convenience, part 2
+      set_fact:
+        prometheus_collectd_exporter_subdir: "{{ prometheus_install_path }}/{{ prometheus_collectd_exporter_signature }}"
+        prometheus_collectd_exporter_archive_file: "{{ prometheus_collectd_exporter_signature }}.tar.gz"
+
+    - name: set download url
+      set_fact:
+        prometheus_collectd_exporter_tarball_url: "https://github.com/prometheus/collectd_exporter/releases/download/{{ prometheus_collectd_exporter_version }}/{{ prometheus_collectd_exporter_archive_file }}"
+
+    - name: set daemon dir
+      set_fact:
+        prometheus_collectd_exporter_daemon_dir: "{{ prometheus_collectd_exporter_subdir }}"
+
+    - name: download and untar collectd_exporter tarball
+      unarchive:
+        src: "{{ prometheus_collectd_exporter_tarball_url }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: no
+      when: local_package_path is not defined
+
+    - name: copy and uncompress local collectd_exporter tarball
+      unarchive:
+        src: "{{ local_package_path }}/{{ prometheus_collectd_exporter_archive_file }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: yes
+      when: local_package_path is defined
+
+
+  when: prometheus_collectd_exporter_version != "git"
+
+- block:
+
+    - name: set internal variables for convenience
+      set_fact:
+        prometheus_collectd_exporter_git_url: "https://github.com/prometheus/collectd_exporter.git"
+        prometheus_collectd_exporter_src_path: "{{ prometheus_goroot }}/src/github.com/prometheus/collectd_exporter"
+        prometheus_collectd_exporter_daemon_dir: "{{ prometheus_install_path }}"
+
+    - name: delete the collectd_exporter build directory, if necessary
+      file:
+        path: "{{ prometheus_collectd_exporter_src_path }}"
+        state: absent
+      when: prometheus_rebuild
+
+    - name: mkdir for collectd_exporter source code
+      file:
+        path: "{{ prometheus_collectd_exporter_src_path }}"
+        state: directory
+
+    - name: clone the collectd_exporter project src
+      git:
+        repo: "{{ prometheus_collectd_exporter_git_url }}"
+        dest: "{{ prometheus_collectd_exporter_src_path }}"
+        force: yes
+
+    - name: build collectd_exporter source code
+      command: make
+      args:
+        chdir: "{{ prometheus_collectd_exporter_src_path }}"
+        creates: collectd_exporter
+      environment:
+        GO15VENDOREXPERIMENT: 1
+        GOROOT: "{{ prometheus_goroot }}"
+        GOPATH: "{{ prometheus_gopath }}"
+        PATH: "{{ ansible_env.PATH }}:{{ prometheus_goroot }}/bin:{{ prometheus_gopath }}/bin"
+
+    - name: copy the built collectd_exporter to the install path
+      command: "cp {{ prometheus_collectd_exporter_src_path }}/collectd_exporter {{ prometheus_install_path }}"
+      args:
+        creates: "{{ prometheus_install_path }}/collectd_exporter"
+
+  when: prometheus_collectd_exporter_version == "git"
+
+- name: set permissions, owner and group
+  file:
+    path: "{{ prometheus_collectd_exporter_daemon_dir  }}/collectd_exporter"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "go-w"
+
+- name: mkdir for data
+  file:
+    path: "{{ prometheus_db_path }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "u=rwx,g=rx,o="
+
+- name: copy systemd config to collectd_exporter
+  template:
+    src: collectd_exporter.service.j2
+    dest: /etc/systemd/system/collectd_exporter.service
+
+- name: "Reload the systemd configuration"
+  command: systemctl daemon-reload
+
+- name: Start collectd_exporter service
+  service:
+    name: collectd_exporter
+    enabled: yes
+    state: started

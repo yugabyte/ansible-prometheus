@@ -7,17 +7,50 @@
 #
 
 - block:
-
-    - name: set internal variables for convenience
+    - name: set internal variables for convenience, part 1
       set_fact:
+        prometheus_signature: "prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}"
+
+    - name: set internal variables for convenience, part 2
+      set_fact:
+        prometheus_subdir: "{{ prometheus_install_path }}/{{ prometheus_signature }}"
         prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}.tar.gz"
-        prometheus_daemon_dir: "{{ prometheus_install_path }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}"
+        prometheus_archive_file: "{{ prometheus_signature }}.tar.gz"
+
+
+    - name: set download url for versions >= 1.0.0
+      set_fact:
+        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/{{ prometheus_archive_file }}"
+      when: prometheus_version | version_compare('1.0', '>=')
+
+    - name: set download url for versions < 1.0.0
+      set_fact:
+        prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/{{ prometheus_version }}/{{ prometheus_archive_file }}"
+      when: prometheus_version | version_compare('1.0', '<')
+
+    - name: set daemon dir for versions >= 0.16
+      set_fact:
+        prometheus_daemon_dir: "{{ prometheus_subdir }}"
+      when: prometheus_version | version_compare('0.16', '>=')
+
+    - name: set daemon dir for versions < 0.16 (OBSOLETE!)
+      set_fact:
+        prometheus_daemon_dir: "{{ prometheus_install_path }}"
+      when: prometheus_version | version_compare('0.16', '<')
 
     - name: download and untar prometheus tarball
       unarchive:
         src: "{{ prometheus_tarball_url }}"
         dest: "{{ prometheus_install_path }}"
         copy: no
+      when: local_package_path is not defined
+
+    - name: copy and uncompress local prometheus tarball
+      unarchive:
+        src: "{{ local_package_path }}/{{ prometheus_archive_file }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: yes
+      when: local_package_path is defined
 
   when: prometheus_version != "git"
 
@@ -92,22 +125,15 @@
   when: not prometheus_use_systemd|bool
 
 - name: copy systemd config to server
-  template: src="../templates/prometheus.service.j2"  dest="/etc/systemd/system/prometheus.service"
-  when: prometheus_use_systemd|bool
+  template: src="../templates/prometheus.service.j2" dest="{{ prometheus_systemd_unit_dir }}/prometheus.service"
+  when: prometheus_use_systemd
+
+- name: "Reload the systemd configuration"
+  command: systemctl daemon-reload
+  when: prometheus_use_systemd
 
 - name: set INIT status
-  service: name=prometheus enabled=yes
-  when: prometheus_use_service|bool
-
-
-- name: copy rule files from playbook's, if any
-  copy:
-    src: "{{ playbook_dir }}/{{ item.value.src }}"
-    dest: "{{ prometheus_rule_path }}/{{ item.value.dest }}"
-    validate: "{{ prometheus_daemon_dir }}/promtool check rules %s"
-  with_dict: '{{ prometheus_rule_files | default({}) }}'
-  notify:
-    - reload prometheus
+  service: name=prometheus enabled=yes state=started
 
 - name: copy prometheus main config file from role's default, if necessary
   template:
@@ -116,7 +142,7 @@
     validate: "{{ prometheus_daemon_dir }}/promtool check config %s"
   when: prometheus_conf_main is not defined
   notify:
-    - reload prometheus
+    - restart prometheus
 
 - name: copy prometheus main config file from playbook's, if any
   template:
@@ -125,5 +151,13 @@
     validate: "{{ prometheus_daemon_dir }}/promtool check config %s"
   when: prometheus_conf_main is defined
   notify:
-    - reload prometheus
+    - restart prometheus
 
+- name: copy rule files from playbook's, if any
+  copy:
+    src: "{{ playbook_dir }}/{{ item.value.src }}"
+    dest: "{{ prometheus_rule_path }}/{{ item.value.dest }}"
+    validate: "{{ prometheus_daemon_dir }}/promtool check-rules %s"
+  with_dict: '{{ prometheus_rule_files | default({}) }}'
+  notify:
+    - restart prometheus

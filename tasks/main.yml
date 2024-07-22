@@ -4,7 +4,29 @@
 #
 # @see https://github.com/prometheus/prometheus
 # @see http://prometheus.io/docs/introduction/getting_started/
-#
+
+# If we are provisioning a cluster-server, local_package_path must be defined
+- assert:
+    that:
+      - local_package_path is defined
+  when: 
+    - server_type is defined
+    - server_type == "cluster-server"
+
+- set_fact:
+    prometheus_user_base_dir: "{{ prometheus_home_dir }}/node_exporter"
+  when: "{{ use_user_scoped_systemd | default(false) }}"
+
+- set_fact:
+    prometheus_install_path: "{{ prometheus_user_base_dir }}/opt/prometheus"
+    prometheus_config_path: "{{ prometheus_user_base_dir }}/etc/prometheus"
+    prometheus_rule_path: "{{ prometheus_config_path }}/rules"
+    prometheus_file_sd_config_path: "{{ prometheus_config_path }}/tgroups"
+    prometheus_db_path: "{{ prometheus_user_base_dir }}/var/lib/prometheus/data"
+    prometheus_log_path: "{{ prometheus_user_base_dir }}/var/log/prometheus"
+    prometheus_pid_path: "{{ prometheus_user_base_dir }}/var/run/prometheus"
+    prometheus_alertmanager_db_path: "{{ prometheus_user_base_dir }}/var/lib/alertmanager"
+  when: "{{ use_user_scoped_systemd | default(false) }}"
 
 
 - name: set role variables, if necessary
@@ -12,27 +34,29 @@
 
 
 - name: install libselinux-python binary for Ansible to work
-  yum: name=libselinux-python state=present
+  yum:
+    name: libselinux-python
+    state: present
+    lock_timeout: 600
   when: ansible_pkg_mgr == "yum"
 
 - name: install dependencies for compiling Prometheus source code
   import_tasks: install-compile-tools.yml
   when: prometheus_alertmanager_version == "git" or prometheus_node_exporter_version == "git" or prometheus_version == "git"
 
-
 - name: create Prometheus group
-  group: name={{ prometheus_group }}  state=present
-  when: not use_user_level_systemd
+  group:
+    name: "{{ prometheus_group }}"
+    state: present
+  when: not use_user_scoped_systemd
 
 - name: create Prometheus user
   user:
     name: "{{ prometheus_user }}"
     group: "{{ prometheus_group }}"
     createhome: no
-    shell: /sbin/nologin
-    comment: "Prometheus User"
     state: present
-  when: not use_user_level_systemd
+  when: not use_user_scoped_systemd
 
 - name: mkdir for general cases
   file:
@@ -63,3 +87,7 @@
 - name: install alertmanager
   import_tasks: install-alertmanager.yml
   when: '"alertmanager" in prometheus_components'
+
+- name: install collectd-exporter
+  include_tasks: install-collectd-exporter.yml
+  when: '"collectd_exporter" in prometheus_components'

@@ -55,8 +55,28 @@
 
   when: prometheus_use_systemd is not defined
 
+- name: configure prometheus_systemd_unit_dir for SLES
+  set_fact:
+    prometheus_systemd_unit_dir: "/usr/lib/systemd/system"
+  when: ansible_os_family == "Suse" and prometheus_node_exporter_use_systemd == True
+
+- name: configure prometheus_systemd_unit_dir for user level systemd
+  set_fact:
+    prometheus_systemd_unit_dir: "{{ prometheus_home_dir }}/.config/systemd/user"
+  when: use_user_scoped_systemd is defined and use_user_scoped_systemd|bool
 
 - name: use traditional SysV init, otherwise
   set_fact:
-    prometheus_use_systemd: false
-  when: prometheus_use_systemd is not defined
+    prometheus_node_exporter_use_systemd: false
+  when: prometheus_node_exporter_use_systemd is not defined
+
+
+- name: set internal variable platform-suffix for convenience
+  set_fact:
+    prometheus_platform_suffix: "linux-amd64"
+  when: ansible_userspace_bits == "64"
+
+- name: set internal variable platform-suffix for convenience
+  set_fact:
+    prometheus_platform_suffix: "linux-386"
+  when: ansible_userspace_bits == "32"

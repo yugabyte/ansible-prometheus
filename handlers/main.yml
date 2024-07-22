@@ -3,38 +3,40 @@
 #
 
 - name: restart prometheus
+  become: yes
   service: name=prometheus state=restarted
-  when: prometheus_use_service|bool
 
 - name: reload prometheus
+  become: yes
   service: name=prometheus state=reloaded
-  when: prometheus_use_service|bool
 
 - name: stop prometheus
+  become: yes
   service: name=prometheus state=stopped
-  when: prometheus_use_service|bool
 
 
 
 - name: restart node_exporter
-  raw: "{{ 'systemctl restart node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user restart node_exporter' }}"
+  become: yes
+  service: name=node_exporter state=restarted
 
 - name: reload node_exporter
-  raw: "{{ 'systemctl reload node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user reload node_exporter' }}"
+  become: yes
+  service: name=node_exporter state=reloaded
 
 - name: stop node_exporter
-  raw: "{{ 'systemctl stop node_exporter' if use_user_level_systemd | default(false) else 'systemctl --user stop node_exporter' }}"
-
+  become: yes
+  service: name=node_exporter state=stopped
 
 
 - name: restart alertmanager
+  become: yes
   service: name=alertmanager state=restarted
-  when: prometheus_use_service|bool
 
 - name: reload alertmanager
+  become: yes
   service: name=alertmanager state=reloaded
-  when: prometheus_use_service|bool
 
 - name: stop alertmanager
+  become: yes
   service: name=alertmanager state=stopped
-  when: prometheus_use_service|bool

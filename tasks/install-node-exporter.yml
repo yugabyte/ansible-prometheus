@@ -7,20 +7,38 @@
 #
 
 - block:
-
-    - name: set internal variables for convenience
+    - name: set internal variables for convenience, part 1
       set_fact:
-        prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ prometheus_platform_suffix }}.tar.gz"
-        prometheus_node_exporter_daemon_dir: "{{ prometheus_install_path }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ prometheus_platform_suffix }}"
+        prometheus_node_exporter_signature: "node_exporter-{{ prometheus_node_exporter_version }}.{{ prometheus_platform_suffix }}"
+
+    - name: set internal variables for convenience, part 2
+      set_fact:
+        prometheus_node_exporter_subdir: "{{ prometheus_install_path }}/{{ prometheus_node_exporter_signature }}"
+        prometheus_node_exporter_archive_file: "{{ prometheus_node_exporter_signature }}.tar.gz"
+
+    - name: set download url for >= 0.13 # Node exporter version is set to 0.13.0
+      set_fact:
+        prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_version }}/{{ prometheus_node_exporter_archive_file }}"
+
+    - name: set daemon dir for >= 0.12 # Node exporter version is set to 0.13.0
+      set_fact:
+        prometheus_node_exporter_daemon_dir: "{{ prometheus_node_exporter_subdir }}"
 
     - name: download and untar node_exporter tarball
       unarchive:
         src: "{{ prometheus_node_exporter_tarball_url }}"
         dest: "{{ prometheus_install_path }}"
         copy: no
+      when: local_package_path is not defined
+
+    - name: copy and uncompress local node_exporter tarball
+      unarchive:
+        src: "{{ local_package_path }}/{{ prometheus_node_exporter_archive_file }}"
+        dest: "{{ prometheus_install_path }}"
+        copy: yes
+      when: local_package_path is defined
 
   when: prometheus_node_exporter_version != "git"
-
 
 - block:
 
@@ -92,25 +110,23 @@
     mode: "u=rwx,g=rx,o="
 
 - name: set node_exporter variables
-  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_base_dir if use_user_level_systemd else '/etc/default' }}/node_exporter"
-  register: node_exporter_config
-
-- debug: var=node_exporter_config
-  notify: reload node_exporter
-  when: node_exporter_config.changed
-
+  copy: src="../files/etc-default-node_exporter"  dest="{{ prometheus_user_base_dir if use_user_scoped_systemd else '/etc/default' }}/node_exporter"
 
 - name: copy INIT script to server
   template: src="../templates/node_exporter.sysvinit.{{ ansible_os_family|lower }}.sh.j2"  dest="/etc/init.d/node_exporter"  mode="a+x"
   when: not prometheus_use_systemd|bool
 
 - name: copy systemd config to server
-  template: src="../templates/node_exporter.service.j2"  dest="{{ systemd_dir }}/node_exporter.service"
-  when: prometheus_use_systemd|bool
+  template: src="../templates/node_exporter.service.j2"  dest="{{ prometheus_systemd_unit_dir }}/node_exporter.service"
+  when: prometheus_node_exporter_use_systemd
+
+- name: reload systemd configuration
+  raw: "{{ 'systemctl --user daemon-reload' if use_user_scoped_systemd else 'systemctl daemon-reload' }}"
+  when: prometheus_node_exporter_use_systemd
 
 - name: set INIT status and start
   service: name=node_exporter enabled=yes state=started
-  when: not use_user_level_systemd and prometheus_use_service|bool
+  when: not use_user_scoped_systemd and prometheus_node_exporter_use_systemd
 
 - name: set INIT status and start
   systemd:
@@ -118,4 +134,4 @@
     name: node_exporter
     state: started
     enabled: yes
-  when: prometheus_use_service|bool and use_user_level_systemd
+  when: use_user_scoped_systemd and prometheus_node_exporter_use_systemd

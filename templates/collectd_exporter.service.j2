@@ -1,0 +1,18 @@
+[Unit]
+Description=collectd_exporter - Collectd Exporter.
+After=network.target
+
+[Service]
+Type=simple
+
+User={{ prometheus_user }}
+Group={{ prometheus_group }}
+
+{% if prometheus_collectd_exporter_opts is defined %}
+ExecStart={{ prometheus_collectd_exporter_daemon_dir }}/collectd_exporter  {{ prometheus_collectd_exporter_opts }}
+{% else %}
+ExecStart={{ prometheus_collectd_exporter_daemon_dir }}/collectd_exporter
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target
