@@ -36,7 +36,7 @@
     name: libselinux-python
     state: present
     lock_timeout: 600
-  when: not air_gap and ansible_pkg_mgr == "yum"
+  when: not air_gap and ansible_pkg_mgr == "yum" and not ansible_distribution == 'Amazon'
 
 - name: install dependencies for compiling Prometheus source code
   import_tasks: install-compile-tools.yml
