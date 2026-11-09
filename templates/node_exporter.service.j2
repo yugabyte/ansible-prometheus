@@ -21,6 +21,10 @@ User={{ prometheus_user }}
 Group={{ prometheus_group }}
 {% endif %}
 
+{% for name, value in prometheus_node_exporter_environment.items() %}
+Environment="{{ name }}={{ value }}"
+{% endfor %}
+
 {% if prometheus_node_exporter_opts is defined %}
 ExecStart={{ prometheus_node_exporter_daemon_dir }}/node_exporter  {{ prometheus_node_exporter_opts }}
 {% else %}
