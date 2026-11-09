@@ -18,7 +18,7 @@
 
     - name: set download url for >= 0.13 # Node exporter version is set to 0.13.0
       set_fact:
-        prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_version }}/{{ prometheus_node_exporter_archive_file }}"
+        prometheus_node_exporter_tarball_url: "{{ prometheus_node_exporter_download_base }}/v{{ prometheus_node_exporter_version }}/{{ prometheus_node_exporter_archive_file }}"
 
     - name: set daemon dir for >= 0.12 # Node exporter version is set to 0.13.0
       set_fact:
